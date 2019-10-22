@@ -1,0 +1,13 @@
+version: '3'
+services:
+  selenium:
+    image: 'selenium/standalone-chrome'
+  tlscontact:
+    image: 'virus/tlscontact-appointment-finder'
+    build: ./
+    restart: on-failure
+    volumes:
+      - ./main.py:/usr/src/app/main.py
+      - ./static:/usr/src/app/static
+    depends_on:
+      - selenium
