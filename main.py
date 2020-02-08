@@ -1,12 +1,13 @@
 import argparse
 import logging
 from contextlib import contextmanager
-from datetime import date
+import datetime
 from os import remove
 from os.path import isfile
 from time import sleep
 
 import telegram
+import re
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver import DesiredCapabilities
@@ -68,7 +69,7 @@ if __name__ == '__main__':
                         level=logging.INFO)
 
     while True:
-        if date.today().strftime('%Y-%m-%d') >= args.search_before:
+        if datetime.date.today().strftime('%Y-%m-%d') >= args.search_before:
             logging.error('Search-date must be in the future')
             break
 
@@ -108,14 +109,20 @@ if __name__ == '__main__':
                             EC.visibility_of_element_located(
                                     (By.XPATH, '//*[text()="%s"]' % args.tls_application_reference)))
                     first_appointment = driver.find_element_by_xpath(
-                            '//div[@class="take_appointment"]/nobr/ul/li[a[@class="dispo"]][1]')
-                    first_date = first_appointment.text.split(' ')[0]
-                    logging.info('Got date ' + first_date)
-                    if first_date < args.search_before:
-                        bot.send_message(chat_id=args.telegram_chat_id, text='New date found! %s' % first_date)
+                            '//div[@class="inner_timeslot"][a[@class="appt-table-btn dispo"]]/span[@class="appt-table-d"]')
+                    first_date = re.sub(r'^.*?(\w+\s+\d+)\w+.*$', r'\1', first_appointment.text, 0, re.DOTALL)
+                    date = datetime.datetime.strptime(str(datetime.date.today().year) + ' ' + first_date, '%Y %B %d').date()
+
+                    if date < datetime.date.today():
+                        date = datetime.datetime.strptime(str(datetime.date.today().year + 1) + ' ' + first_date, '%Y %B %d').date()
+
+                    logging.info('Got date ' + date.strftime('%Y-%m-%d'))
+
+                    if date < datetime.datetime.strptime(args.search_before, '%Y-%m-%d').date():
+                        bot.send_message(chat_id=args.telegram_chat_id, text='New date found! %s' % date.strftime('%Y-%m-%d'))
                     else:
                         bot.send_message(chat_id=args.telegram_chat_id,
-                                         text='No new dates, earliest available is %s' % first_date)
+                                         text='No new dates, earliest available is %s' % date.strftime('%Y-%m-%d'))
         except KeyboardInterrupt:
             logging.info('Terminating...')
             break
