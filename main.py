@@ -120,6 +120,7 @@ if __name__ == '__main__':
 
                     if date < datetime.datetime.strptime(args.search_before, '%Y-%m-%d').date():
                         bot.send_message(chat_id=args.telegram_chat_id, text='New date found! %s' % date.strftime('%Y-%m-%d'))
+                        bot.send_message(chat_id=args.telegram_chat_id, text='Current cookies: %s' % driver.get_cookies())
                     else:
                         bot.send_message(chat_id=args.telegram_chat_id,
                                          text='No new dates, earliest available is %s' % date.strftime('%Y-%m-%d'))
