@@ -90,7 +90,7 @@ if __name__ == '__main__':
                 has_error = False
 
                 try:
-                    error = driver.find_element_by_xpath('//div[contains(@class, "main_message_error")]')
+                    error = driver.find_element_by_xpath('//div[@class="main_message main_message_"]')
                     error_text = error.text.strip()
                     if error_text:
                         logging.error('Got error - ' + error_text)
