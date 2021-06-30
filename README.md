@@ -60,7 +60,3 @@ All those arguments are required.
 ## Other ways...
 
 Just google it :)
-
-# Troubleshooting
-
-In case of any problems feel free to contact me over [telegram](https://t.me/andrey_yantsen) or create an issue here. 
