@@ -83,7 +83,7 @@ if __name__ == '__main__':
                 email = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.ID, 'email')))
                 email.send_keys(args.login)
                 driver.find_element_by_id('pwd').send_keys(args.password)
-                btn = driver.find_element_by_xpath('//input[@type="submit"]')
+                btn = driver.find_element_by_xpath('//input[@type="button"]')
                 btn.click()
                 WebDriverWait(driver, 15).until(EC.staleness_of(btn))
 
@@ -110,7 +110,7 @@ if __name__ == '__main__':
                                     (By.XPATH, '//*[text()="%s"]' % args.tls_application_reference)))
                     first_appointment = driver.find_element_by_xpath(
                             '//div[@class="inner_timeslot"][a[@class="appt-table-btn dispo"]]/span[@class="appt-table-d"]')
-                    first_date = re.sub(r'^.*?(\w+\s+\d+)\w+.*$', r'\1', first_appointment.text, 0, re.DOTALL)
+                    first_date = re.sub(r'^.*?(\w+\s+\d+).*$', r'\1', first_appointment.text, 0, re.DOTALL)
                     date = datetime.datetime.strptime(str(datetime.date.today().year) + ' ' + first_date, '%Y %B %d').date()
 
                     if date < datetime.date.today():
