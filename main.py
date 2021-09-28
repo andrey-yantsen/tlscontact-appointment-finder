@@ -24,7 +24,7 @@ def get_selenium_driver(selenium_command_executor, failure_screenshot=None, succ
         remove(success_screenshot)
 
     driver = webdriver.Remote(command_executor=selenium_command_executor,
-                              desired_capabilities=DesiredCapabilities.CHROME)
+                              desired_capabilities=DesiredCapabilities.FIREFOX)
     try:
         yield driver
         if success_screenshot:
