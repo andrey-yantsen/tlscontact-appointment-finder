@@ -1,4 +1,4 @@
-FROM python:3.7-alpine
+FROM python:3.9-alpine
 WORKDIR /usr/src/app
 ENV PIPENV_VENV_IN_PROJECT=1
 COPY Pipfile Pipfile.lock /usr/src/app/
