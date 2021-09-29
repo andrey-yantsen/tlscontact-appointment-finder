@@ -102,8 +102,7 @@ if __name__ == '__main__':
                     pass
 
                 if not has_error:
-                    S = lambda X: driver.execute_script('return document.body.parentNode.scroll' + X)
-                    driver.set_window_size(S('Width'), S('Height'))
+                    driver.set_window_size(1440, 4000)
                     driver.find_element_by_tag_name('body').screenshot('./static/after_login.png')
                     WebDriverWait(driver, 10).until(
                             EC.visibility_of_element_located(
