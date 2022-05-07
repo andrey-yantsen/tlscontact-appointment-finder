@@ -14,29 +14,15 @@ from selenium.webdriver import DesiredCapabilities
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
+import time
 
 
 @contextmanager
-def get_selenium_driver(selenium_command_executor, failure_screenshot=None, success_screenshot=None):
-    if failure_screenshot and isfile(failure_screenshot):
-        remove(failure_screenshot)
-    if success_screenshot and isfile(success_screenshot):
-        remove(success_screenshot)
-
+def get_selenium_driver(selenium_command_executor):
     driver = webdriver.Remote(command_executor=selenium_command_executor,
                               desired_capabilities=DesiredCapabilities.FIREFOX)
     try:
         yield driver
-        if success_screenshot:
-            def S(X): return driver.execute_script('return document.body.parentNode.scroll' + X)
-            driver.set_window_size(S('Width'), S('Height'))
-            driver.find_element_by_tag_name('body').screenshot(success_screenshot)
-    except:
-        if failure_screenshot:
-            def S(X): return driver.execute_script('return document.body.parentNode.scroll' + X)
-            driver.set_window_size(S('Width'), S('Height'))
-            driver.find_element_by_tag_name('body').screenshot(failure_screenshot)
-        raise
     finally:
         driver.delete_all_cookies()
         driver.quit()
@@ -61,6 +47,7 @@ if __name__ == '__main__':
                         help='Selenium command executor url, e.g. http://selenium:4444/wd/hub',
                         default='http://selenium:4444/wd/hub')
     parser.add_argument('--once', help='Run only once', action='store_true', default=False)
+    parser.add_argument('--debug', help='Store debug info', action='store_true', default=False)
     args = parser.parse_args()
 
     bot = telegram.Bot(args.telegram_bot_token)
@@ -74,9 +61,9 @@ if __name__ == '__main__':
             break
 
         try:
+            retry = False
             logging.info('Starting...')
-            with get_selenium_driver(args.selenium_executor, './static/tls_contact_error.png',
-                                     './static/tls_contact_success.png') as driver:
+            with get_selenium_driver(args.selenium_executor) as driver:
                 driver.get('https://fr.tlscontact.com/gb/LON/login.php')
                 WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.ID, 'email')))
                 driver.get('https://fr.tlscontact.com/gb/LON/login.php')
@@ -102,11 +89,27 @@ if __name__ == '__main__':
                     pass
 
                 if not has_error:
-                    driver.set_window_size(1440, 4000)
-                    driver.find_element_by_tag_name('body').screenshot('./static/after_login.png')
+                    try:
+                        driver.find_element_by_id('pwd')
+                        logging.error('We`re still on the log in page')
+                        retry = True
+
+                        if args.debug:
+                            with open("./static/page_%d.html" % (time.time(),), "wb") as fh:
+                                fh.write(driver.page_source.encode('utf-8'))
+
+                        continue
+                    except NoSuchElementException:
+                        pass
+
                     WebDriverWait(driver, 10).until(
                         EC.visibility_of_element_located(
                             (By.XPATH, '//*[text()="%s"]' % args.tls_application_reference)))
+
+                    if args.debug:
+                        with open("./static/page_%d.html" % (time.time(),), "wb") as fh:
+                            fh.write(driver.page_source.encode('utf-8'))
+
                     first_appointment = driver.find_element_by_xpath(
                         '//div[@class="inner_timeslot"][a[@class="appt-table-btn dispo"]]/span[@class="appt-table-d"]')
                     first_date = re.sub(r'^.*?(\w+\s+\d+).*$', r'\1', first_appointment.text, 0, re.DOTALL)
@@ -132,10 +135,15 @@ if __name__ == '__main__':
             args.once = True
             break
         except Exception as e:
+            if args.debug:
+                with open("./static/page_%d.html" % (time.time(),), "wb") as fh:
+                    fh.write(driver.page_source.encode('utf-8'))
+
             logging.exception('Got error')
             bot.send_message(chat_id=args.telegram_chat_id, text='Got an exception! %s' % e)
         finally:
             logging.info('Done')
             if args.once:
                 break
-            sleep(args.delay)
+            if not retry:
+                sleep(args.delay)
