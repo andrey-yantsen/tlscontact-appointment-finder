@@ -28,12 +28,12 @@ def get_selenium_driver(selenium_command_executor, failure_screenshot=None, succ
     try:
         yield driver
         if success_screenshot:
-            S = lambda X: driver.execute_script('return document.body.parentNode.scroll' + X)
+            def S(X): return driver.execute_script('return document.body.parentNode.scroll' + X)
             driver.set_window_size(S('Width'), S('Height'))
             driver.find_element_by_tag_name('body').screenshot(success_screenshot)
     except:
         if failure_screenshot:
-            S = lambda X: driver.execute_script('return document.body.parentNode.scroll' + X)
+            def S(X): return driver.execute_script('return document.body.parentNode.scroll' + X)
             driver.set_window_size(S('Width'), S('Height'))
             driver.find_element_by_tag_name('body').screenshot(failure_screenshot)
         raise
@@ -105,26 +105,31 @@ if __name__ == '__main__':
                     driver.set_window_size(1440, 4000)
                     driver.find_element_by_tag_name('body').screenshot('./static/after_login.png')
                     WebDriverWait(driver, 10).until(
-                            EC.visibility_of_element_located(
-                                    (By.XPATH, '//*[text()="%s"]' % args.tls_application_reference)))
+                        EC.visibility_of_element_located(
+                            (By.XPATH, '//*[text()="%s"]' % args.tls_application_reference)))
                     first_appointment = driver.find_element_by_xpath(
-                            '//div[@class="inner_timeslot"][a[@class="appt-table-btn dispo"]]/span[@class="appt-table-d"]')
+                        '//div[@class="inner_timeslot"][a[@class="appt-table-btn dispo"]]/span[@class="appt-table-d"]')
                     first_date = re.sub(r'^.*?(\w+\s+\d+).*$', r'\1', first_appointment.text, 0, re.DOTALL)
-                    date = datetime.datetime.strptime(str(datetime.date.today().year) + ' ' + first_date, '%Y %B %d').date()
+                    date = datetime.datetime.strptime(str(datetime.date.today().year) +
+                                                      ' ' + first_date, '%Y %B %d').date()
 
                     if date < datetime.date.today():
-                        date = datetime.datetime.strptime(str(datetime.date.today().year + 1) + ' ' + first_date, '%Y %B %d').date()
+                        date = datetime.datetime.strptime(
+                            str(datetime.date.today().year + 1) + ' ' + first_date, '%Y %B %d').date()
 
                     logging.info('Got date ' + date.strftime('%Y-%m-%d'))
 
                     if date < datetime.datetime.strptime(args.search_before, '%Y-%m-%d').date():
-                        bot.send_message(chat_id=args.telegram_chat_id, text='New date found! %s' % date.strftime('%Y-%m-%d'))
-                        bot.send_message(chat_id=args.telegram_chat_id, text='Current cookies: %s' % driver.get_cookies())
+                        bot.send_message(chat_id=args.telegram_chat_id, text='New date found! %s' %
+                                         date.strftime('%Y-%m-%d'))
+                        bot.send_message(chat_id=args.telegram_chat_id, text='Current cookies: %s' %
+                                         driver.get_cookies())
                     else:
                         bot.send_message(chat_id=args.telegram_chat_id,
                                          text='No new dates, earliest available is %s' % date.strftime('%Y-%m-%d'))
         except KeyboardInterrupt:
             logging.info('Terminating...')
+            args.once = True
             break
         except Exception as e:
             logging.exception('Got error')

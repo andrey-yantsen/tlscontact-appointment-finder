@@ -1,6 +1,7 @@
 version: '3'
 services:
   selenium:
+    shm_size: 2g
     image: 'selenium/standalone-firefox:latest'
   tlscontact:
     image: 'virus/tlscontact-appointment-finder:latest'
