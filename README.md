@@ -46,6 +46,7 @@ git clone https://github.com/andrey-yantsen/tlscontact-appointment-finder.git
 And run it using following command, replacing arguments with proper values:
 
 ```
+docker-compose run -d selenium && sleep 10
 docker-compose run tlscontact \
   --tls-application-reference <APPLICATION_REFERENCE> \
   --login <EMAIL> \
