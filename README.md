@@ -1,3 +1,5 @@
+# THE PROJECT IS NOT USABLE AFTER TLSCONTACT INTRODUCED A ROBOT-PROTECTING LANDING PAGE.
+
 # What is it?
 
 If you ever tried to get a French Schengen visa using using TLSContact in London, you know that it's a pain
